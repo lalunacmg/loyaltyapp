@@ -51,7 +51,6 @@
   h1,h2,h3,.serif{font-family:'Fraunces', serif;}
   #app{
     width:100%;
-    max-width:460px;
     min-height:100vh;
     min-height:100dvh;
     background:var(--cream);
@@ -59,7 +58,12 @@
     flex-direction:column;
     position:relative;
     overflow-x:hidden;
-    box-shadow: 0 0 60px rgba(0,0,0,.08);
+  }
+  /* Only frame it like a phone mockup on genuinely wide (desktop/tablet) viewports.
+     On real phones (the vast majority of widths below), #app fills edge-to-edge
+     with no side margins/borders — no cream strips, no shadow, no cap. */
+  @media (min-width:600px){
+    #app{max-width:460px;box-shadow:0 0 60px rgba(0,0,0,.08);}
   }
 
   /* ---------- Top bar ---------- */
@@ -771,14 +775,6 @@
         <div class="stat-box"><div class="n" id="statVisits">0</div><div class="l">Visits</div></div>
         <div class="stat-box"><div class="n" id="statPoints">0</div><div class="l">Points balance</div></div>
         <div class="stat-box"><div class="n" id="statRewards">0</div><div class="l">Rewards ready</div></div>
-      </div>
-
-      <div class="card">
-        <div class="section-head" style="margin-bottom:8px;"><h2 style="font-size:15px;">Check in at the counter</h2></div>
-        <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;line-height:1.5;">
-          When your order is ready, staff will show a QR code at the counter. Scan it to log this visit — each code is single-use and tied to that order.
-        </p>
-        <button class="btn btn-ghost" onclick="openScanner()">Scan counter QR to check in</button>
       </div>
 
       <div class="card">
