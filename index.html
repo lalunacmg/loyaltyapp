@@ -25,6 +25,9 @@
     --mango:#E7A23A;
     --mango-deep:#C97F1C;
     --coral:#C1502D;
+    --green:#3FAE59;
+    --green-deep:#2C8A42;
+    --green-tint:#E1F3E5;
     --line:rgba(38,37,31,.14);
     --white:#FFFDF8;
     --radius-s:10px;
@@ -324,16 +327,26 @@
   .stamp svg{width:58%;height:58%;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.18));}
   .stamp-label{font-size:8px;font-weight:700;text-align:center;line-height:1.15;letter-spacing:.02em;color:rgba(255,255,255,.55);padding:0 2px;}
   .stamp.filled .stamp-label{color:var(--teal-dark);}
-  .stamp.highlight{border:1.5px solid var(--mango);box-shadow:0 0 0 3px rgba(231,162,58,.35);animation:pc-pulse 1.6s ease-in-out infinite;}
-  .stamp.highlight .stamp-label{color:var(--mango);}
-  @keyframes pc-pulse{0%,100%{box-shadow:0 0 0 3px rgba(231,162,58,.35);}50%{box-shadow:0 0 0 6px rgba(231,162,58,.12);}}
+  .stamp.highlight{border:1.5px solid var(--green);box-shadow:0 0 0 3px rgba(63,174,89,.45);animation:pc-pulse 1.6s ease-in-out infinite;}
+  .stamp.highlight .stamp-label{color:#fff;}
+  @keyframes pc-pulse{0%,100%{box-shadow:0 0 0 3px rgba(63,174,89,.45);}50%{box-shadow:0 0 0 7px rgba(63,174,89,.15);}}
   .redeem-ready{
-    margin-top:14px;background:rgba(231,162,58,.16);border:1.5px solid var(--mango);border-radius:var(--radius-s);
+    margin-top:14px;background:rgba(63,174,89,.16);border:1.5px solid var(--green);border-radius:var(--radius-s);
     padding:12px 14px;position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:10px;
   }
+  .redeem-ready-text{flex:1;min-width:0;}
   .redeem-ready-title{font-size:13.5px;color:var(--white);font-weight:600;}
   .redeem-ready-sub{font-size:11px;color:var(--teal-tint);margin-top:2px;}
-  .redeem-ready .btn-mango{padding:8px 16px;font-size:12.5px;flex-shrink:0;}
+  .redeem-ready-btn{
+    width:auto;
+    flex-shrink:0;
+    padding:10px 18px;
+    font-size:12.5px;
+    font-weight:700;
+    white-space:nowrap;
+    border:1.5px solid rgba(255,255,255,.55);
+    box-shadow:0 4px 12px rgba(0,0,0,.25), 0 0 0 3px rgba(63,174,89,.25);
+  }
   .pc-foot{font-size:12.5px;color:var(--teal-tint);line-height:1.5;position:relative;z-index:1;}
   .pc-foot b{color:var(--white);}
 
@@ -368,13 +381,15 @@
   .reward-item .ri-title{font-size:14.5px;font-weight:600;}
   .reward-item .ri-code{font-size:12px;color:var(--ink-soft);margin-top:3px;font-family:monospace;}
   .badge{
+    display:inline-block;
+    vertical-align:middle;
     font-size:11px;
     padding:4px 9px;
     border-radius:100px;
     font-weight:600;
     white-space:nowrap;
   }
-  .badge.ready{background:#FBEBD8;color:var(--mango-deep);}
+  .badge.ready{background:var(--green-tint);color:var(--green-deep);}
   .badge.used{background:var(--cream-2);color:var(--ink-soft);}
   .empty{
     text-align:center;
@@ -594,6 +609,19 @@
   }
   .scanner-close:hover{background:rgba(255,255,255,.1);}
   #scannerVideo{width:100%;aspect-ratio:1;object-fit:cover;background:#000;display:block;}
+  .reward-picker-box{max-height:80vh;display:flex;flex-direction:column;}
+  .reward-picker-list{padding:14px 16px 18px;overflow-y:auto;}
+  .reward-pick-row{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:13.5px;
+  }
+  .reward-pick-row:last-child{border-bottom:none;}
+  .reward-pick-row .pill-row{flex-wrap:nowrap;}
+  .reward-pick-single{cursor:pointer;}
+  .reward-pick-go{color:var(--mango);font-weight:600;font-size:12.5px;flex-shrink:0;}
+  .reward-picker-list .ip-label{color:rgba(255,255,255,.5);}
+  .reward-picker-list .pill{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:var(--white);}
+  .reward-picker-list .pill.active{background:var(--mango);border-color:var(--mango);color:var(--teal-dark);}
   .scanner-status{padding:14px 16px 18px;font-size:12.5px;color:var(--teal-tint);line-height:1.5;text-align:center;}
 
   /* ---------- Counter / staff display ---------- */
@@ -719,7 +747,7 @@
             <div class="perk">
               <div class="perk-icon mango"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h16a1 1 0 0 1 1 1v1.2a5.5 5.5 0 0 1-5.5 5.5h-6A5.5 5.5 0 0 1 4 11.2V9Z"/><path d="M20 11h1.2a2.5 2.5 0 0 1 0 5H20"/><path d="M9 3.2c0 .9-1.1 1-1.1 1.9s1.1 1 1.1 1.9M13.2 3.2c0 .9-1.1 1-1.1 1.9s1.1 1 1.1 1.9"/></svg></div>
               <div class="perk-label mango-text">Get Rewards</div>
-              <div class="perk-sub">Enjoy a free drink on your 10th stamp.</div>
+              <div class="perk-sub">Order 9 drinks and your 10th is free.</div>
             </div>
             <div class="perk">
               <div class="perk-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 9.5 8 3 9l5 4.6L6.5 20 12 16.3 17.5 20 16 13.6 21 9l-6.5-1Z" stroke-linejoin="round"/></svg></div>
@@ -752,11 +780,11 @@
         </div>
         <div class="stamps" id="stampGrid"></div>
         <div class="redeem-ready" id="redeemReady" style="display:none;">
-          <div>
+          <div class="redeem-ready-text">
             <div class="redeem-ready-title">🎉 Free drink unlocked!</div>
             <div class="redeem-ready-sub">Show this to staff at the counter.</div>
           </div>
-          <button class="btn btn-mango" id="redeemReadyBtn" onclick="redeemStampReward()">Redeem</button>
+          <button class="btn btn-mango redeem-ready-btn" id="redeemReadyBtn" onclick="redeemStampReward()">Redeem</button>
         </div>
         <div class="pc-foot" id="pcFoot">Order any drink to start your card.</div>
       </div>
@@ -767,7 +795,7 @@
           <li><b>Dine-in &amp; Takeout only</b> — this app is not for delivery orders.</li>
           <li><b>Points</b> and <b>stamps</b> are separate — points show top-right below your name; stamps live on the card above.</li>
           <li>Earn <b>5 pts</b> on every completed order. <b>1 pt = ₱1</b>, good only toward drinks on a future order. No pts earned if you redeem points on that same order.</li>
-          <li>Earn <b>1 stamp per drink</b> ordered (coffee, frappe, fruit shakes, milk tea) — every 10th stamp unlocks a free drink. <b>2 for ₱99 (M)</b> earns just 1 stamp per order, not 2.</li>
+          <li>Earn <b>1 stamp per drink</b> ordered (coffee, frappe, fruit shakes, milk tea) — after <b>9 stamps</b>, your 10th drink is free, and you pick which one. <b>2 for ₱99 (M)</b> earns just 1 stamp per order, not 2, and isn't eligible as the free pick.</li>
         </ul>
       </div>
 
@@ -800,6 +828,17 @@
         </div>
         <video id="scannerVideo" playsinline muted></video>
         <div class="scanner-status" id="scannerStatus">Point your camera at the QR code shown at the counter.</div>
+      </div>
+    </div>
+
+    <!-- ===================== FREE DRINK REWARD PICKER ===================== -->
+    <div id="rewardPickerOverlay" class="scanner-overlay">
+      <div class="scanner-box reward-picker-box">
+        <div class="scanner-head">
+          <span>Choose your free drink</span>
+          <button class="scanner-close" onclick="closeRewardPicker()">✕</button>
+        </div>
+        <div id="rewardPickerList" class="reward-picker-list"></div>
       </div>
     </div>
 
@@ -1254,21 +1293,22 @@ function showView(name){
 }
 
 /* ---------------- card / home ---------------- */
+const STAMPS_REQUIRED = 9; // buy 9, the 10th (last slot) is the free one
 function renderCard(){
-  const stamps = Math.min(customer.drinkStamps, 10); // 0-10; frozen at 10 until the free drink is redeemed
-  document.getElementById('pcCount').innerHTML = stamps + '<span>/10</span>';
+  const stamps = Math.min(customer.drinkStamps, STAMPS_REQUIRED); // 0-9; frozen at 9 until the free drink is redeemed
+  const complete = stamps >= STAMPS_REQUIRED;
+  document.getElementById('pcCount').innerHTML = stamps + '<span>/'+STAMPS_REQUIRED+'</span>';
   const grid = document.getElementById('stampGrid');
   grid.innerHTML = '';
   for(let i=0;i<10;i++){
-    const isLast = i===9;
-    const filled = i < stamps;
-    const anticipate = isLast && stamps===9; // one order away — highlight the last slot
+    const isLast = i===9; // the 10th slot is always the free-drink slot, never bought
+    const filled = isLast ? complete : (i < stamps);
     let cls = 'stamp';
     if(filled) cls += ' filled';
-    if(anticipate) cls += ' highlight';
+    if(isLast && complete) cls += ' highlight';
     let inner = '';
-    if(filled && isLast){
-      inner = '<div class="stamp-label">REDEEM</div>';
+    if(isLast){
+      inner = '<div class="stamp-label">'+(complete ? 'REDEEM FREE' : 'FREE DRINK')+'</div>';
     } else if(filled){
       inner = '<svg viewBox="0 0 24 24" fill="none">'+
         '<path d="M9 2.6c0 .95-1.15 1.05-1.15 2s1.15 1.05 1.15 2" stroke="#153733" stroke-width="1.6" stroke-linecap="round"/>'+
@@ -1276,26 +1316,22 @@ function renderCard(){
         '<path d="M5 9.2h11a1.2 1.2 0 0 1 1.2 1.2v1.1a5.2 5.2 0 0 1-5.2 5.2H9.2A5.2 5.2 0 0 1 4 11.5v-1.1A1.2 1.2 0 0 1 5 9.2Z" fill="#153733"/>'+
         '<path d="M17.2 11.1h1.1a2.55 2.55 0 0 1 0 5.1h-1.1" stroke="#153733" stroke-width="1.9" stroke-linecap="round"/>'+
       '</svg>';
-    } else if(isLast){
-      inner = '<div class="stamp-label">'+(anticipate ? '1 MORE!' : 'FREE DRINK')+'</div>';
     }
     grid.innerHTML += '<div class="'+cls+'">'+inner+'</div>';
   }
 
   const pendingStampReward = customer.rewards.find(r=>r.stampReward && !r.redeemed);
   const redeemBox = document.getElementById('redeemReady');
-  if(stamps===10 && pendingStampReward){
+  if(complete && pendingStampReward){
     redeemBox.style.display = 'flex';
-    document.getElementById('redeemReadyBtn').setAttribute('onclick', "redeemStampReward('"+pendingStampReward.id+"')");
-    document.getElementById('pcFoot').innerHTML = 'Your <b>free drink</b> is ready — redeem it above.';
+    document.getElementById('redeemReadyBtn').setAttribute('onclick', "openRewardPicker('"+pendingStampReward.id+"')");
+    document.getElementById('pcFoot').innerHTML = 'Your <b>free drink</b> is ready — tap Redeem to pick it.';
   } else {
     redeemBox.style.display = 'none';
-    const remain = 10 - stamps;
+    const remain = STAMPS_REQUIRED - stamps;
     document.getElementById('pcFoot').innerHTML = stamps===0
       ? 'Order any drink to start your card.'
-      : stamps===9
-        ? '<b>1 more drink</b> and your next one is free!'
-        : '<b>'+remain+' more drink'+(remain===1?'':'s')+'</b> until your next one is free.';
+      : '<b>'+remain+' more drink'+(remain===1?'':'s')+'</b> until your next one is free.';
   }
 
   document.getElementById('statVisits').textContent = customer.visits;
@@ -1304,16 +1340,55 @@ function renderCard(){
   document.getElementById('whoName').textContent = customer.name.split(' ')[0];
   document.getElementById('whoPoints').textContent = customer.points+' pts';
 }
-async function redeemStampReward(id){
-  const r = customer.rewards.find(x=>x.id===id);
-  if(!r || r.redeemed) return;
+
+/* ---------------- free-drink reward picker ---------------- */
+let pendingStampRewardId = null;
+function openRewardPicker(rewardId){
+  pendingStampRewardId = rewardId;
+  renderRewardPickerList();
+  document.getElementById('rewardPickerOverlay').classList.add('show');
+}
+function closeRewardPicker(){
+  document.getElementById('rewardPickerOverlay').classList.remove('show');
+  pendingStampRewardId = null;
+}
+function renderRewardPickerList(){
+  const eligible = MENU.filter(m=>m.drink && !m.stampExempt);
+  const groups = {};
+  eligible.forEach(m=>{ (groups[m.group] = groups[m.group] || []).push(m); });
+  let html = '<p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 14px;line-height:1.5;">'+
+    'Pick any Coffee, Frappe, Fruit Shake, or Medium Milk Tea — on us. (2 for ₱99 (M) isn\'t eligible.)</p>';
+  Object.keys(groups).forEach(g=>{
+    html += '<div class="ip-label" style="margin-top:12px;">'+g+'</div>';
+    groups[g].forEach(m=>{
+      if(m.variants){
+        html += '<div class="reward-pick-row"><span>'+m.name+'</span><div class="pill-row" style="margin:0;">';
+        m.variants.forEach(v=>{
+          html += '<div class="pill" onclick="chooseRewardDrink(\''+m.id+'\',\''+v.label+'\')">'+v.label+'</div>';
+        });
+        html += '</div></div>';
+      } else {
+        html += '<div class="reward-pick-row reward-pick-single" onclick="chooseRewardDrink(\''+m.id+'\',null)">'+
+          '<span>'+m.name+'</span><span class="reward-pick-go">Pick →</span></div>';
+      }
+    });
+  });
+  document.getElementById('rewardPickerList').innerHTML = html;
+}
+async function chooseRewardDrink(itemId, variantLabel){
+  const item = MENU.find(m=>m.id===itemId);
+  const r = customer.rewards.find(x=>x.id===pendingStampRewardId);
+  if(!item || !r || r.redeemed){ closeRewardPicker(); return; }
+  const drinkLabel = item.name + (variantLabel ? ' ('+variantLabel+')' : '');
   r.redeemed = true;
   r.redeemedAt = Date.now();
-  customer.drinkStamps = 0; // clear the card now that the reward is actually redeemed
-  pushHistory('Redeemed reward: '+r.title, 0);
+  r.chosenDrink = drinkLabel;
+  if(r.stampReward) customer.drinkStamps = 0; // clear the card now that the reward is actually redeemed
+  pushHistory('Redeemed reward: Free '+drinkLabel, 0);
   await saveCustomer();
+  closeRewardPicker();
   renderCard(); renderRewards(); renderProfile();
-  toast('Free drink redeemed — your stamp card is cleared. Show this screen to staff.');
+  toast('🎉 Free <b>'+drinkLabel+'</b> redeemed — show this screen to staff.');
 }
 /* ---------------- counter QR check-in (customer side: scan) ---------------- */
 const CHECKIN_PREFIX = 'LALUNACHECKIN:';
@@ -1797,7 +1872,7 @@ function renderCheckout(){
       '</div>';
   }
 
-  const available = customer.rewards.filter(r=>!r.redeemed);
+  const available = customer.rewards.filter(r=>!r.redeemed && !r.stampReward); // stamp rewards are redeemed from the Loyalty card, not applied as a checkout discount
   const codeArea = document.getElementById('rewardCodeArea');
   if(available.length===0){
     codeArea.innerHTML = 'No rewards available yet.';
@@ -1866,7 +1941,7 @@ async function confirmPayment(){
 
   // Stamps: 1 stamp per drink ordered (drinks only), capped at what's left until a free drink is unlocked.
   const drinkQty = items.filter(i=>i.drink).reduce((a,b)=>a+b.qty,0);
-  const stampCapacity = 10 - customer.drinkStamps;
+  const stampCapacity = STAMPS_REQUIRED - customer.drinkStamps;
   const earnedStamps = Math.max(0, Math.min(drinkQty, stampCapacity));
   customer.drinkStamps += earnedStamps;
 
@@ -1880,14 +1955,14 @@ async function confirmPayment(){
   }
 
   // stamp card just filled — unlock the free-drink reward (only once per fill)
-  if(customer.drinkStamps===10){
+  if(customer.drinkStamps===STAMPS_REQUIRED){
     const hasPendingStampReward = customer.rewards.some(r=>r.stampReward && !r.redeemed);
     if(!hasPendingStampReward){
       const code = genCode('LALUNA-FREE');
-      const rw = {id:'rw'+Date.now(), title:'Free drink (10th stamp reward)', code, value: 75, redeemed:false, earnedAt: Date.now(), stampReward:true};
+      const rw = {id:'rw'+Date.now(), title:'Free drink reward', code, value: 0, redeemed:false, earnedAt: Date.now(), stampReward:true};
       customer.rewards.unshift(rw);
-      pushHistory('Unlocked: free drink reward', 0);
-      toast('🔔 Push notification: <b>Free drink unlocked!</b> Redeem it from your Loyalty card.', 6000);
+      pushHistory('Unlocked: free drink reward — choose any eligible drink', 0);
+      toast('🔔 Push notification: <b>Free drink unlocked!</b> Pick it from your Loyalty card.', 6000);
     }
   }
 
@@ -1918,15 +1993,16 @@ async function redeemRewardFromList(id){
 }
 function renderRewards(){
   if(customer.rewards.length===0){
-    document.getElementById('rewardsList').innerHTML = '<div class="empty">No rewards yet — every 10th drink earns a free one. Order a drink to start your stamp card.</div>';
+    document.getElementById('rewardsList').innerHTML = '<div class="empty">No rewards yet — after 9 drinks, your 10th is free. Order a drink to start your stamp card.</div>';
     return;
   }
   document.getElementById('rewardsList').innerHTML = customer.rewards.map(r=>
-    '<div class="reward-item"><div><div class="ri-title">'+r.title+'</div>'+
+    '<div class="reward-item"><div><div class="ri-title">'+r.title+(r.chosenDrink ? ' — '+r.chosenDrink : '')+
+      (!r.redeemed ? ' <span class="badge ready">Ready</span>' : '')+'</div>'+
     '<div class="ri-code">'+r.code+' · earned '+fmtTime(r.earnedAt)+'</div></div>'+
     (r.redeemed
       ? '<span class="badge used">Redeemed</span>'
-      : '<button class="btn-outline-small" onclick="redeemRewardFromList(\''+r.id+'\')">Redeem</button>')
+      : '<button class="btn-outline-small" onclick="'+(r.stampReward ? "openRewardPicker('"+r.id+"')" : "redeemRewardFromList('"+r.id+"')")+'">Redeem</button>')
     +'</div>'
   ).join('');
 }
