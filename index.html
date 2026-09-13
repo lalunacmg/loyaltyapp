@@ -1048,6 +1048,7 @@ const FLAVOR_SETS = { wings: WING_FLAVORS, milktea: MILKTEA_FLAVORS };
 const POINTS_PER_TRANSACTION = 5;  // flat points earned per completed (paid) order
 const POINTS_VALUE_PHP = 1;        // 1 pt = ₱1 when redeemed
 const POINTS_PER_VISIT = 10;       // earned from a counter QR check-in (arrival, not a purchase)
+const TAKEOUT_BOX_PRICE = 5;       // ₱ per box, auto-added for takeout orders — 1 box per food item (not drinks)
 
 let phone = null;
 let customer = null;
@@ -1276,7 +1277,7 @@ function renderCard(){
         '<path d="M17.2 11.1h1.1a2.55 2.55 0 0 1 0 5.1h-1.1" stroke="#153733" stroke-width="1.9" stroke-linecap="round"/>'+
       '</svg>';
     } else if(isLast){
-      inner = '<div class="stamp-label">'+(anticipate ? 'REDEEM' : 'FREE DRINK')+'</div>';
+      inner = '<div class="stamp-label">'+(anticipate ? '1 MORE!' : 'FREE DRINK')+'</div>';
     }
     grid.innerHTML += '<div class="'+cls+'">'+inner+'</div>';
   }
@@ -1709,9 +1710,18 @@ function cartDrinkSubtotal(){
     return item.drink ? sum + cartLineUnit(line)*line.qty : sum;
   }, 0);
 }
+function takeoutBoxCount(){
+  if(orderType!=='takeout') return 0;
+  return cart.reduce((sum,line)=>{
+    const item = MENU.find(m=>m.id===line.itemId);
+    return (item && !item.drink) ? sum + line.qty : sum; // 1 box per food item, drinks don't need one
+  }, 0);
+}
 function computeTotals(){
   const sub = cartTotal();
   const drinkSub = cartDrinkSubtotal();
+  const boxCount = takeoutBoxCount();
+  const boxFee = boxCount * TAKEOUT_BOX_PRICE;
   const maxPts = Math.max(0, Math.min(customer.points, drinkSub));
   if(pointsToRedeem > maxPts) pointsToRedeem = maxPts;
   if(pointsToRedeem < 0) pointsToRedeem = 0;
@@ -1719,8 +1729,8 @@ function computeTotals(){
   const reward = customer.rewards.find(r=>r.id===selectedRewardId && !r.redeemed);
   const rewardDiscount = reward ? reward.value : 0;
   const discount = pointsDiscount + rewardDiscount;
-  const total = Math.max(sub - discount, 0);
-  return {sub, drinkSub, maxPts, pointsDiscount, reward, rewardDiscount, discount, total};
+  const total = Math.max(sub - discount, 0) + boxFee;
+  return {sub, drinkSub, boxCount, boxFee, maxPts, pointsDiscount, reward, rewardDiscount, discount, total};
 }
 function changePointsRedeem(delta){
   const {maxPts} = computeTotals();
@@ -1737,7 +1747,7 @@ function selectReward(id){
   renderCheckout();
 }
 function renderCheckout(){
-  const {sub, drinkSub, maxPts, discount, total} = computeTotals();
+  const {sub, drinkSub, boxCount, boxFee, maxPts, discount, total} = computeTotals();
 
   let linesHtml = '';
   if(cart.length===0){
@@ -1760,6 +1770,9 @@ function renderCheckout(){
       '</div></div>';
   });
   linesHtml += '<div class="line"><span class="muted">'+ (orderType==='dine-in'?'Dine-in':'Takeout') +'</span><span></span></div>';
+  if(boxCount>0){
+    linesHtml += '<div class="line"><span class="muted">Takeout box ('+boxCount+'pc'+(boxCount===1?'':'s')+' · ₱'+TAKEOUT_BOX_PRICE+' each)</span><span>₱'+boxFee+'</span></div>';
+  }
   linesHtml += '<div class="line"><span class="muted">Subtotal</span><span>₱'+sub+'</span></div>';
   if(discount>0) linesHtml += '<div class="line"><span class="muted">Discount</span><span>−₱'+discount+'</span></div>';
   linesHtml += '<div class="line total"><span>Total</span><span>₱'+total+'</span></div>';
@@ -1808,12 +1821,12 @@ function setPaymentMethod(method){
   document.getElementById('payCashPanel').style.display = method==='cash' ? 'block' : 'none';
 }
 function renderPay(){
-  const {sub, discount, total, reward} = computeTotals();
+  const {sub, discount, total, reward, boxCount, boxFee} = computeTotals();
   document.getElementById('payAmount').textContent = total;
   document.getElementById('payAmount2').textContent = total;
   document.getElementById('payAmountCash').textContent = total;
   document.getElementById('payAmountCash2').textContent = total;
-  pendingOrder = {sub, discount, total, reward};
+  pendingOrder = {sub, discount, total, reward, boxCount, boxFee};
 }
 async function confirmPayment(){
   const items = cart.map(line=>{
@@ -1826,6 +1839,8 @@ async function confirmPayment(){
     type: orderType,
     items,
     total: pendingOrder.total,
+    takeoutBoxCount: pendingOrder.boxCount || 0,
+    takeoutBoxFee: pendingOrder.boxFee || 0,
     createdAt: Date.now(),
     status: 'completed',
     paymentMethod,
