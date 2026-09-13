@@ -2,7 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="La Luna Loyalty">
+<meta name="theme-color" content="#204E49">
 <title>La Luna Grill &amp; Cafe — Loyalty</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -26,7 +31,8 @@
     --radius-m:16px;
     --shadow-card: 0 1px 0 rgba(38,37,31,.06);
   }
-  *{box-sizing:border-box;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  button, a, input, .mi-row, .pill, .stamp, .tabbar button{touch-action:manipulation;}
   html,body{height:100%;overflow-x:hidden;}
   body{
     margin:0;
@@ -244,10 +250,12 @@
     font-size:14.5px;
     font-weight:600;
     cursor:pointer;
-    transition:transform .12s ease, opacity .12s ease, filter .12s ease;
+    user-select:none;
+    touch-action:manipulation;
+    transition:transform .08s ease, opacity .08s ease, filter .08s ease;
   }
   .btn svg{width:18px;height:18px;flex-shrink:0;}
-  .btn:active{transform:scale(.98);}
+  .btn:active{transform:scale(.97);}
   .btn-primary{background:var(--teal);color:var(--white);}
   .btn-primary:hover{background:var(--teal-dark);}
   .btn-mango{background:linear-gradient(135deg, var(--mango) 0%, var(--coral) 100%);color:var(--white);box-shadow:0 8px 18px rgba(193,80,45,.35);}
@@ -1135,16 +1143,37 @@ function toast(html, ms=4200){
 /* ---------------- Facebook follow (required) ---------------- */
 const FB_URL = 'https://www.facebook.com/laluna.cmg';
 let hasFollowedFB = false;
+let awaitingFbReturn = false; // set when the customer taps Follow from onboarding
 async function followFB(){
   // Update state and UI FIRST, so the button unlocks no matter what happens with
   // the popup (blocked popups, WebView quirks, etc. must never leave the customer stuck).
   hasFollowedFB = true;
   updateFollowUI();
+  // If they're still on the sign-in screen (not logged in yet), remember that we're
+  // sending them to Facebook so we can auto-continue into the app when they come back.
+  const onOnboarding = !customer && document.getElementById('view-onboard').classList.contains('active');
+  if(onOnboarding) awaitingFbReturn = true;
   try{ window.open(FB_URL, '_blank', 'noopener'); }
   catch(e){ /* popup blocked or unsupported — the button is already unlocked above */ }
   await storeSet('device-followed-fb', true, false);
   if(customer){ customer.followedFB = true; await saveCustomer(); }
 }
+// When the customer switches back to this tab/app after visiting Facebook, automatically
+// continue them into their loyalty card instead of making them tap "Open" again.
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible' && awaitingFbReturn){
+    awaitingFbReturn = false;
+    const stillOnOnboarding = !customer && document.getElementById('view-onboard').classList.contains('active');
+    if(stillOnOnboarding) startSession();
+  }
+});
+window.addEventListener('focus', ()=>{
+  if(awaitingFbReturn){
+    awaitingFbReturn = false;
+    const stillOnOnboarding = !customer && document.getElementById('view-onboard').classList.contains('active');
+    if(stillOnOnboarding) startSession();
+  }
+});
 function updateFollowUI(){
   const gateBtn = document.getElementById('fbFollowBtn');
   const openBtn = document.getElementById('btnOpenCard');
@@ -1471,7 +1500,7 @@ function requiredFlavorCount(item, ui){
 }
 function renderItemPanel(item){
   const ui = uiFor(item.id);
-  let html = '<div class="item-panel">';
+  let html = '<div class="item-panel" id="panel-'+item.id+'">';
   if(item.variants){
     html += '<div class="ip-label">Choose size</div><div class="pill-row">';
     item.variants.forEach((v,i)=>{
@@ -1537,14 +1566,22 @@ function toggleItemPanel(id){
   ui.expanded = !ui.expanded;
   renderMenu();
 }
+// Only the one item's mini panel needs to change on these — rebuilding the whole
+// ~50-item menu list on every quantity/add-on/flavor tap is what made buttons feel slow.
+function refreshItemPanel(id){
+  const item = MENU.find(m=>m.id===id);
+  const panelEl = document.getElementById('panel-'+id);
+  if(item && panelEl){ panelEl.outerHTML = renderItemPanel(item); }
+  else { renderMenu(); }
+}
 function setVariant(id, idx){
   uiFor(id).variantIdx = idx;
-  renderMenu();
+  refreshItemPanel(id);
 }
 function toggleAddon(id, label){
   const ui = uiFor(id);
   ui.addons[label] = !ui.addons[label];
-  renderMenu();
+  refreshItemPanel(id);
 }
 function toggleFlavor(id, flavor){
   const ui = uiFor(id);
@@ -1556,7 +1593,7 @@ function toggleFlavor(id, flavor){
     if(ui.flavors.length >= item.flavorMax) ui.flavors.shift(); // keep only the most recent picks
     ui.flavors.push(flavor);
   }
-  renderMenu();
+  refreshItemPanel(id);
 }
 function changeFlavorCount(id, flavor, delta){
   const ui = uiFor(id);
@@ -1572,12 +1609,12 @@ function changeFlavorCount(id, flavor, delta){
     const next = cur-1;
     if(next<=0) delete ui.flavorCounts[flavor]; else ui.flavorCounts[flavor] = next;
   }
-  renderMenu();
+  refreshItemPanel(id);
 }
 function changeTempQty(id, delta){
   const ui = uiFor(id);
   ui.qty = Math.max(1, ui.qty + delta);
-  renderMenu();
+  refreshItemPanel(id);
 }
 function addItemToCart(id){
   const item = MENU.find(m=>m.id===id);
