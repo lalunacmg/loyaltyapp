@@ -359,6 +359,14 @@
     margin-bottom:12px;
   }
   .stat-row{display:flex;gap:10px;margin:16px 0 6px;}
+  .pending-order-card{border-color:var(--mango);}
+  .pending-order-title{font-size:14px;font-weight:600;color:var(--ink);}
+  .pending-order-sub{font-size:12.5px;color:var(--ink-soft);margin-top:4px;line-height:1.5;}
+  .pending-order-qr{display:flex;justify-content:center;padding:14px;background:var(--white);border:1px solid var(--line);border-radius:var(--radius-s);margin-top:12px;}
+  .pending-order-qr svg{display:block;width:160px;height:160px;}
+  .qr-fallback{width:100%;text-align:center;padding:4px;}
+  .qr-fallback-label{font-size:11.5px;color:var(--ink-soft);margin-bottom:8px;}
+  .qr-fallback-code{font-family:monospace;font-size:14px;font-weight:600;color:var(--ink);word-break:break-all;background:var(--cream-2);border-radius:8px;padding:10px;}
   .stat-box{flex:1;background:var(--white);border:1px solid var(--line);border-radius:var(--radius-s);padding:12px 14px;}
   .stat-box .n{font-family:'Fraunces',serif;font-size:22px;font-weight:600;}
   .stat-box .l{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
@@ -608,7 +616,8 @@
     width:28px;height:28px;border-radius:50%;
   }
   .scanner-close:hover{background:rgba(255,255,255,.1);}
-  #scannerVideo{width:100%;aspect-ratio:1;object-fit:cover;background:#000;display:block;}
+  .admin-video-box{width:100%;max-width:320px;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#000;}
+  #adminVideo{width:100%;height:100%;object-fit:cover;display:block;}
   .reward-picker-box{max-height:80vh;display:flex;flex-direction:column;}
   .reward-picker-list{padding:14px 16px 18px;overflow-y:auto;}
   .reward-pick-row{
@@ -638,15 +647,19 @@
     flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
     padding:24px;text-align:center;overflow-y:auto;
   }
-  .counter-qr{background:var(--white);padding:16px;border-radius:16px;}
-  .counter-qr svg{display:block;width:220px;height:220px;}
-  .counter-code{font-family:monospace;font-size:15px;letter-spacing:.04em;margin-top:16px;color:var(--teal-tint);}
-  .counter-expiry{font-size:12.5px;color:var(--teal-tint);margin-top:4px;}
   .counter-log{margin-top:24px;width:100%;max-width:320px;text-align:left;}
   .counter-log .cl-row{
     display:flex;justify-content:space-between;font-size:12px;color:var(--teal-tint);
     padding:6px 0;border-bottom:1px solid rgba(255,255,255,.1);
   }
+  .admin-manual{width:100%;max-width:320px;margin-top:20px;text-align:left;}
+  .admin-manual-row{display:flex;gap:8px;}
+  .admin-manual-row input{
+    flex:1;padding:10px 12px;border-radius:8px;border:1.5px solid rgba(255,255,255,.2);
+    background:rgba(255,255,255,.06);color:var(--white);font-family:monospace;font-size:13px;
+  }
+  .admin-manual-row input::placeholder{color:rgba(255,255,255,.35);}
+  .admin-manual-row .btn-outline-small{border-color:rgba(255,255,255,.3);color:var(--white);flex-shrink:0;}
 
   ::-webkit-scrollbar{width:0;}
 
@@ -761,7 +774,7 @@
             <span>We use your number only to remember your stamps and rewards on this device.</span>
           </div>
           <p class="counter-link">
-            Running the counter? <a href="#" onclick="event.preventDefault();openCounterMode();">Open check-in display</a>
+            Running the counter? <a href="#" onclick="event.preventDefault();openAdminDashboard();">Open Loyalty Dashboard (Admin)</a>
           </p>
         </div>
       </div>
@@ -789,13 +802,19 @@
         <div class="pc-foot" id="pcFoot">Order any drink to start your card.</div>
       </div>
 
+      <div class="card pending-order-card" id="pendingOrderCard" style="display:none;">
+        <div class="pending-order-title">⏳ Order placed — confirm at the counter</div>
+        <div class="pending-order-sub" id="pendingOrderSub">Show this code to staff so they can add your points and stamps.</div>
+        <div class="pending-order-qr" id="pendingOrderQR"></div>
+      </div>
+
       <div class="card program-info">
         <div class="section-head" style="margin-bottom:8px;"><h2 style="font-size:15px;">How the loyalty program works</h2></div>
         <ul class="program-rules">
           <li><b>Dine-in &amp; Takeout only</b> — this app is not for delivery orders.</li>
           <li><b>Points</b> and <b>stamps</b> are separate — points show top-right below your name; stamps live on the card above.</li>
           <li>Earn <b>5 pts</b> on every completed order. <b>1 pt = ₱1</b>, good only toward drinks on a future order. No pts earned if you redeem points on that same order.</li>
-          <li>Earn <b>1 stamp per drink</b> ordered (coffee, frappe, fruit shakes, milk tea) — after <b>9 stamps</b>, your 10th drink is free, and you pick which one. <b>2 for ₱99 (M)</b> earns just 1 stamp per order, not 2, and isn't eligible as the free pick.</li>
+          <li>Earn <b>1 stamp per drink</b> ordered (coffee, frappe, fruit shakes, milk tea) — after <b>9 stamps</b>, your 10th is free. Your free pick is limited to any flavor of <b>Large Milk Tea (22oz)</b>. <b>2 for ₱99 (M)</b> earns just 1 stamp per order, not 2, and isn't eligible as the free pick.</li>
         </ul>
       </div>
 
@@ -819,17 +838,6 @@
       </div>
     </section>
 
-    <!-- ===================== SCANNER OVERLAY ===================== -->
-    <div id="scannerOverlay" class="scanner-overlay">
-      <div class="scanner-box">
-        <div class="scanner-head">
-          <span>Scan counter QR</span>
-          <button class="scanner-close" onclick="closeScanner()">✕</button>
-        </div>
-        <video id="scannerVideo" playsinline muted></video>
-        <div class="scanner-status" id="scannerStatus">Point your camera at the QR code shown at the counter.</div>
-      </div>
-    </div>
 
     <!-- ===================== FREE DRINK REWARD PICKER ===================== -->
     <div id="rewardPickerOverlay" class="scanner-overlay">
@@ -932,9 +940,9 @@
       <div class="section-label" style="margin-top:18px;">Staff</div>
       <div class="card">
         <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;line-height:1.5;">
-          Running the counter? Open the check-in display on the register device or tablet.
+          Running the counter? Open the La Luna Loyalty Dashboard (Admin) to scan a customer's order QR and confirm it.
         </p>
-        <button class="btn-outline-small" onclick="openCounterMode()">Open counter display</button>
+        <button class="btn-outline-small" onclick="openAdminDashboard()">Open Loyalty Dashboard (Admin)</button>
       </div>
     </section>
 
@@ -959,21 +967,28 @@
     </button>
   </nav>
 
-  <!-- ===================== COUNTER / STAFF DISPLAY ===================== -->
-  <div id="counterOverlay" class="counter-overlay">
+  <!-- ===================== ADMIN DASHBOARD (staff scans customer's order QR) ===================== -->
+  <div id="adminOverlay" class="counter-overlay">
     <div class="counter-head">
-      <div class="serif" style="font-size:18px;">La Luna · Counter check-in</div>
-      <button class="scanner-close" onclick="closeCounterMode()">✕</button>
+      <div class="serif" style="font-size:18px;">La Luna Loyalty Dashboard (Admin)</div>
+      <button class="scanner-close" onclick="closeAdminDashboard()">✕</button>
     </div>
     <div class="counter-body">
-      <div id="counterQR" class="counter-qr"></div>
-      <div class="counter-code" id="counterCodeText">—</div>
-      <div class="counter-expiry" id="counterExpiryText">—</div>
-      <button class="btn btn-mango" style="margin-top:18px;" onclick="generateCounterCode()">New code for next order</button>
+      <div class="admin-video-box">
+        <video id="adminVideo" playsinline muted></video>
+      </div>
+      <div class="scanner-status" id="adminStatus">Point the camera at the customer's order QR code.</div>
       <p class="fine-print" style="max-width:280px;">
-        Show this screen at the counter. Each code works once — generate a new one after every completed order.
+        Ask the customer to open their Loyalty card — their pending order shows a QR code there. Scanning it adds their points and stamps for that order.
       </p>
-      <div class="counter-log" id="counterLog"></div>
+      <div class="admin-manual">
+        <div class="ip-label" style="color:var(--teal-tint);margin-bottom:8px;">Can't scan? Enter their code manually</div>
+        <div class="admin-manual-row">
+          <input type="text" id="adminManualCode" placeholder="phone : order id(s)">
+          <button class="btn-outline-small" onclick="submitManualAdminCode()">Confirm</button>
+        </div>
+      </div>
+      <div class="counter-log" id="adminLog"></div>
     </div>
   </div>
 
@@ -1084,9 +1099,8 @@ const WING_FLAVORS = ['Honey Butter', 'Soy Garlic', 'Buffalo'];
 const MILKTEA_FLAVORS = ['Taro', 'Okinawa', 'Wintermelon', 'Caramel Sugar', 'Chocolate', 'Cookies & Cream'];
 const FLAVOR_SETS = { wings: WING_FLAVORS, milktea: MILKTEA_FLAVORS };
 
-const POINTS_PER_TRANSACTION = 5;  // flat points earned per completed (paid) order
+const POINTS_PER_TRANSACTION = 5;  // flat points earned per completed (paid) order, credited once counter-confirmed
 const POINTS_VALUE_PHP = 1;        // 1 pt = ₱1 when redeemed
-const POINTS_PER_VISIT = 10;       // earned from a counter QR check-in (arrival, not a purchase)
 const TAKEOUT_BOX_PRICE = 5;       // ₱ per box, auto-added for takeout orders — 1 box per food item (not drinks)
 
 let phone = null;
@@ -1247,7 +1261,7 @@ async function startSession(){
   const ph = document.getElementById('inPhone').value.trim();
   if(!name || !ph){ toast('Please enter your name and mobile number.'); return; }
   phone = ph;
-  let existing = await storeGet('customer:'+ph);
+  let existing = await storeGet('customer:'+ph, true);
   if(existing){
     customer = existing;
     customer.name = name || customer.name;
@@ -1272,7 +1286,9 @@ function switchAccount(){
 }
 async function saveCustomer(){
   if(!phone) return;
-  await storeSet('customer:'+phone, customer);
+  // Shared (not private) storage — the Admin Dashboard runs as a separate session/device
+  // and needs to read + update this same record when it scans a customer's order QR.
+  await storeSet('customer:'+phone, customer, true);
 }
 
 /* ---------------- navigation ---------------- */
@@ -1288,12 +1304,41 @@ function showView(name){
   if(name==='pay') renderPay();
   if(name==='rewards') renderRewards();
   if(name==='profile') renderProfile();
-  if(name==='card'){ renderCard(); updateFollowUI(); }
+  if(name==='card'){ renderCard(); updateFollowUI(); refreshCustomerFromStorage(); }
   updateCartBar();
+}
+// Admin confirmations happen from a separate device/session — pull the latest shared
+// record whenever the customer looks at their Card tab, so a just-confirmed order/points
+// don't stay stuck showing the old (stale) local state.
+async function refreshCustomerFromStorage(){
+  if(!phone) return;
+  const fresh = await storeGet('customer:'+phone, true);
+  if(fresh){
+    customer = fresh;
+    renderCard(); renderProfile();
+  }
 }
 
 /* ---------------- card / home ---------------- */
 const STAMPS_REQUIRED = 9; // buy 9, the 10th (last slot) is the free one
+// The qrcode-generator library's "auto" mode (typeNumber 0) has a known bug where it can
+// throw "r is undefined" for certain short payloads — so instead of relying on auto-detect,
+// try explicit type numbers from smallest upward until one actually fits the data.
+function buildQrSvg(payload, cellSize, margin){
+  if(typeof qrcode !== 'function') throw new Error('qrcode library not loaded');
+  let lastErr = null;
+  for(let type=1; type<=10; type++){
+    try{
+      const qr = qrcode(type, 'M');
+      qr.addData(payload);
+      qr.make();
+      return qr.createSvgTag(cellSize, margin);
+    } catch(e){
+      lastErr = e; // too small for this payload (or another transient issue) — try the next size up
+    }
+  }
+  throw lastErr || new Error('QR generation failed for all type numbers');
+}
 function renderCard(){
   const stamps = Math.min(customer.drinkStamps, STAMPS_REQUIRED); // 0-9; frozen at 9 until the free drink is redeemed
   const complete = stamps >= STAMPS_REQUIRED;
@@ -1339,6 +1384,37 @@ function renderCard(){
   document.getElementById('statRewards').textContent = customer.rewards.filter(r=>!r.redeemed).length;
   document.getElementById('whoName').textContent = customer.name.split(' ')[0];
   document.getElementById('whoPoints').textContent = customer.points+' pts';
+
+  const pendingOrders = customer.orders.filter(o=>o.status==='pending');
+  const pendingCard = document.getElementById('pendingOrderCard');
+  if(pendingOrders.length>0){
+    pendingCard.style.display = 'block';
+    const ptsSum = pendingOrders.reduce((a,o)=>a+(o.pendingEarnedPts||0),0);
+    const drinkSum = pendingOrders.reduce((a,o)=>a+(o.drinkQty||0),0);
+    const bits = [];
+    if(ptsSum>0) bits.push(ptsSum+' pts');
+    if(drinkSum>0) bits.push(drinkSum+' stamp'+(drinkSum===1?'':'s'));
+    document.getElementById('pendingOrderSub').textContent =
+      (pendingOrders.length>1 ? pendingOrders.length+' orders' : 'Your order')+' waiting on pickup'+
+      (bits.length ? ' — worth '+bits.join(' + ')+' once confirmed' : '')+'. Show this code to staff.';
+    const ids = pendingOrders.map(o=>o.id).join(',');
+    const payload = ORDER_QR_PREFIX + customer.phone + ':' + ids;
+    const qrBox = document.getElementById('pendingOrderQR');
+    try{
+      qrBox.innerHTML = buildQrSvg(payload, 4, 8);
+    } catch(e){
+      // QR library failed to load (e.g. offline, CDN blocked) — fall back to a manual code
+      // staff can type into the Admin Dashboard instead of scanning.
+      console.error('QR generation failed, showing manual code fallback', e);
+      qrBox.innerHTML =
+        '<div class="qr-fallback">'+
+          '<div class="qr-fallback-label">QR unavailable — give staff this code instead:</div>'+
+          '<div class="qr-fallback-code">'+customer.phone+' : '+ids+'</div>'+
+        '</div>';
+    }
+  } else {
+    pendingCard.style.display = 'none';
+  }
 }
 
 /* ---------------- free-drink reward picker ---------------- */
@@ -1353,25 +1429,13 @@ function closeRewardPicker(){
   pendingStampRewardId = null;
 }
 function renderRewardPickerList(){
-  const eligible = MENU.filter(m=>m.drink && !m.stampExempt);
-  const groups = {};
-  eligible.forEach(m=>{ (groups[m.group] = groups[m.group] || []).push(m); });
+  const eligible = MENU.filter(m=>m.group==='Milk Tea' && !m.stampExempt);
   let html = '<p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 14px;line-height:1.5;">'+
-    'Pick any Coffee, Frappe, Fruit Shake, or Medium Milk Tea — on us. (2 for ₱99 (M) isn\'t eligible.)</p>';
-  Object.keys(groups).forEach(g=>{
-    html += '<div class="ip-label" style="margin-top:12px;">'+g+'</div>';
-    groups[g].forEach(m=>{
-      if(m.variants){
-        html += '<div class="reward-pick-row"><span>'+m.name+'</span><div class="pill-row" style="margin:0;">';
-        m.variants.forEach(v=>{
-          html += '<div class="pill" onclick="chooseRewardDrink(\''+m.id+'\',\''+v.label+'\')">'+v.label+'</div>';
-        });
-        html += '</div></div>';
-      } else {
-        html += '<div class="reward-pick-row reward-pick-single" onclick="chooseRewardDrink(\''+m.id+'\',null)">'+
-          '<span>'+m.name+'</span><span class="reward-pick-go">Pick →</span></div>';
-      }
-    });
+    'Pick any flavor of <b>Large Milk Tea (22oz)</b> — on us.</p>';
+  html += '<div class="ip-label" style="margin-top:12px;">Milk Tea — Large (22oz)</div>';
+  eligible.forEach(m=>{
+    html += '<div class="reward-pick-row reward-pick-single" onclick="chooseRewardDrink(\''+m.id+'\',\'Large\')">'+
+      '<span>'+m.name+'</span><span class="reward-pick-go">Pick →</span></div>';
   });
   document.getElementById('rewardPickerList').innerHTML = html;
 }
@@ -1390,140 +1454,122 @@ async function chooseRewardDrink(itemId, variantLabel){
   renderCard(); renderRewards(); renderProfile();
   toast('🎉 Free <b>'+drinkLabel+'</b> redeemed — show this screen to staff.');
 }
-/* ---------------- counter QR check-in (customer side: scan) ---------------- */
-const CHECKIN_PREFIX = 'LALUNACHECKIN:';
-let qrScannerInstance = null;
+/* ---------------- order confirmation QR (customer side: display only) ---------------- */
+const ORDER_QR_PREFIX = 'LALUNAORDER:';
 
-function openScanner(){
-  if(!customer){ toast('Open your loyalty card first.'); return; }
-  document.getElementById('scannerOverlay').classList.add('show');
-  document.getElementById('scannerStatus').textContent = 'Point your camera at the QR code shown at the counter.';
-  const video = document.getElementById('scannerVideo');
+/* ---------------- Admin Dashboard (staff side: scans the customer's QR) ---------------- */
+let adminScannerInstance = null;
+async function openAdminDashboard(){
+  document.getElementById('adminOverlay').classList.add('show');
+  document.getElementById('adminStatus').textContent = 'Point the camera at the customer\'s order QR code.';
+  await renderAdminLog();
+  const video = document.getElementById('adminVideo');
   try{
     QrScanner.WORKER_PATH = 'https://cdnjs.cloudflare.com/ajax/libs/qr-scanner/1.4.2/qr-scanner-worker.min.js';
-    qrScannerInstance = new QrScanner(video, result => handleScanResult(result.data || result), {
+    adminScannerInstance = new QrScanner(video, result => handleAdminScan(result.data || result), {
       returnDetailedScanResult: true,
       highlightScanRegion: true,
     });
-    qrScannerInstance.start().catch(err=>{
-      document.getElementById('scannerStatus').textContent =
-        'Camera unavailable (' + (err && err.message ? err.message : 'permission denied') + '). Open this app in a browser tab on your phone and allow camera access, then try again.';
+    adminScannerInstance.start().catch(err=>{
+      document.getElementById('adminStatus').textContent =
+        'Camera unavailable (' + (err && err.message ? err.message : 'permission denied') + '). Open this app in a browser tab on this device and allow camera access, then try again.';
     });
   } catch(e){
-    document.getElementById('scannerStatus').textContent = 'Camera scanning isn\'t available in this preview. Open the file directly in a phone browser to scan.';
+    document.getElementById('adminStatus').textContent = 'Camera scanning isn\'t available in this preview. Open the file directly in a device browser to scan.';
   }
 }
-function closeScanner(){
-  document.getElementById('scannerOverlay').classList.remove('show');
-  if(qrScannerInstance){ qrScannerInstance.stop(); qrScannerInstance.destroy(); qrScannerInstance = null; }
+function closeAdminDashboard(){
+  document.getElementById('adminOverlay').classList.remove('show');
+  if(adminScannerInstance){ adminScannerInstance.stop(); adminScannerInstance.destroy(); adminScannerInstance = null; }
 }
-async function handleScanResult(text){
-  if(!text || !text.startsWith(CHECKIN_PREFIX)) return; // ignore unrelated QR codes, keep scanning
-  const code = text.slice(CHECKIN_PREFIX.length);
-  document.getElementById('scannerStatus').textContent = 'Checking code…';
-  const record = await storeGet('counter:code:'+code, true);
-  const now = Date.now();
-  if(!record){
-    document.getElementById('scannerStatus').textContent = 'That code isn\'t recognized. Ask staff for the current counter QR.';
-    return;
-  }
-  if(record.redeemed){
-    document.getElementById('scannerStatus').textContent = 'This code has already been used for a visit.';
-    return;
-  }
-  if(now > record.expiresAt){
-    document.getElementById('scannerStatus').textContent = 'This code has expired. Ask staff to generate a new one.';
-    return;
-  }
-  record.redeemed = true;
-  record.redeemedBy = customer.name + ' (' + customer.phone + ')';
-  record.redeemedAt = now;
-  await storeSet('counter:code:'+code, record, true);
-  await appendCounterLog({code, redeemedBy: customer.name, redeemedAt: now});
+let adminScanBusy = false;
+async function handleAdminScan(text){
+  if(adminScanBusy) return; // ignore rapid repeat scans of the same frame
+  if(!text || !text.startsWith(ORDER_QR_PREFIX)) return; // ignore unrelated QR codes, keep scanning
+  const payload = text.slice(ORDER_QR_PREFIX.length);
+  const sep = payload.indexOf(':');
+  if(sep<0) return;
+  const custPhone = payload.slice(0, sep);
+  const orderIds = payload.slice(sep+1).split(',').filter(Boolean);
+  if(!custPhone || orderIds.length===0) return;
 
-  customer.visits += 1;
-  const earned = POINTS_PER_VISIT;
-  customer.points += earned;
-  pushHistory('Checked in via counter QR', earned);
-  await saveCustomer();
-  renderCard(); renderProfile();
-  closeScanner();
-  toast('Checked in! <b>+'+earned+' pts</b> added to your balance.');
-}
+  adminScanBusy = true;
+  document.getElementById('adminStatus').textContent = 'Looking up customer…';
 
-/* ---------------- counter QR check-in (staff side: display) ---------------- */
-let counterTimer = null;
-function genCounterCode(){
-  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let s='';
-  for(let i=0;i<8;i++) s+=chars[Math.floor(Math.random()*chars.length)];
-  return s;
+  const cust = await storeGet('customer:'+custPhone, true);
+  if(!cust){
+    document.getElementById('adminStatus').textContent = 'No customer record found for that code.';
+    adminScanBusy = false;
+    return;
+  }
+
+  const targets = cust.orders.filter(o=>orderIds.includes(o.id) && o.status==='pending');
+  if(targets.length===0){
+    document.getElementById('adminStatus').textContent = 'Those orders were already confirmed or aren\'t pending.';
+    adminScanBusy = false;
+    return;
+  }
+
+  let totalPts = 0, totalStamps = 0;
+  targets.forEach(order=>{
+    const earnedPts = order.pendingEarnedPts || 0;
+    const stampCapacity = STAMPS_REQUIRED - cust.drinkStamps;
+    const earnedStamps = Math.max(0, Math.min(order.drinkQty || 0, stampCapacity));
+    cust.points += earnedPts;
+    cust.drinkStamps += earnedStamps;
+    order.status = 'completed';
+    totalPts += earnedPts;
+    totalStamps += earnedStamps;
+    cust.history.unshift({label:'Earned '+earnedPts+' pts for order '+order.id, delta:earnedPts, at:Date.now()});
+    if(earnedStamps>0) cust.history.unshift({label:'Earned '+earnedStamps+' stamp'+(earnedStamps===1?'':'s')+' for order '+order.id, delta:0, at:Date.now()});
+    if(cust.drinkStamps===STAMPS_REQUIRED && !cust.rewards.some(r=>r.stampReward && !r.redeemed)){
+      const code = genCode('LALUNA-FREE');
+      cust.rewards.unshift({id:'rw'+Date.now(), title:'Free drink reward', code, value:0, redeemed:false, earnedAt:Date.now(), stampReward:true});
+      cust.history.unshift({label:'Unlocked: free drink reward — choose any eligible drink', delta:0, at:Date.now()});
+    }
+  });
+  cust.history.unshift({label:'Confirmed at counter — order'+(targets.length>1?'s':'')+' picked up', delta:0, at:Date.now()});
+  cust.history = cust.history.slice(0,80);
+
+  await storeSet('customer:'+custPhone, cust, true);
+  await appendAdminLog({name:cust.name, phone:custPhone, pts:totalPts, stamps:totalStamps, at:Date.now()});
+  await renderAdminLog();
+
+  // if staff happen to be looking at the same account on this device, refresh it too
+  if(phone===custPhone && customer){ customer = cust; renderCard(); renderProfile(); }
+
+  document.getElementById('adminStatus').textContent =
+    'Confirmed '+cust.name+' — +'+totalPts+' pts, +'+totalStamps+' stamp'+(totalStamps===1?'':'s')+' added.';
+  setTimeout(()=>{ adminScanBusy = false; }, 2000); // brief pause before accepting the next scan
 }
-async function appendCounterLog(entry){
-  let log = await storeGet('counter:log', true) || [];
+// Fallback path for when the customer's QR won't render (offline, blocked CDN, etc.) — they read
+// their phone/order-id text off-screen instead, staff types it in here using the same confirm logic.
+function submitManualAdminCode(){
+  const raw = (document.getElementById('adminManualCode').value || '').trim();
+  if(!raw){ document.getElementById('adminStatus').textContent = 'Enter the customer\'s code first.'; return; }
+  const sep = raw.indexOf(':');
+  if(sep<0){ document.getElementById('adminStatus').textContent = 'Format should be: phone : order id(s)'; return; }
+  const custPhone = raw.slice(0, sep).trim();
+  const orderIds = raw.slice(sep+1).trim();
+  document.getElementById('adminManualCode').value = '';
+  handleAdminScan(ORDER_QR_PREFIX + custPhone + ':' + orderIds);
+}
+async function appendAdminLog(entry){
+  let log = await storeGet('admin:log', true) || [];
   log.unshift(entry);
   log = log.slice(0,15);
-  await storeSet('counter:log', log, true);
+  await storeSet('admin:log', log, true);
 }
-async function openCounterMode(){
-  document.getElementById('counterOverlay').classList.add('show');
-  await generateCounterCode();
-  await renderCounterLog();
-  if(counterTimer) clearInterval(counterTimer);
-  counterTimer = setInterval(async ()=>{
-    await tickCounterExpiry();
-  }, 1000);
-}
-function closeCounterMode(){
-  document.getElementById('counterOverlay').classList.remove('show');
-  if(counterTimer){ clearInterval(counterTimer); counterTimer = null; }
-}
-let currentCounterCode = null;
-let currentCounterExpiry = null;
-async function generateCounterCode(){
-  // invalidate the previous code immediately so it can't be scanned late
-  if(currentCounterCode){
-    const prev = await storeGet('counter:code:'+currentCounterCode, true);
-    if(prev && !prev.redeemed){ prev.expiresAt = Date.now(); await storeSet('counter:code:'+currentCounterCode, prev, true); }
-  }
-  const code = genCounterCode();
-  const createdAt = Date.now();
-  const expiresAt = createdAt + 3*60*1000; // 3 minutes
-  await storeSet('counter:code:'+code, {createdAt, expiresAt, redeemed:false}, true);
-  currentCounterCode = code;
-  currentCounterExpiry = expiresAt;
-  renderCounterQR(CHECKIN_PREFIX + code);
-  document.getElementById('counterCodeText').textContent = code;
-  await tickCounterExpiry();
-}
-function renderCounterQR(payload){
-  const box = document.getElementById('counterQR');
-  const qr = qrcode(0, 'M');
-  qr.addData(payload);
-  qr.make();
-  box.innerHTML = qr.createSvgTag(6, 12);
-}
-async function tickCounterExpiry(){
-  if(!currentCounterExpiry) return;
-  const secsLeft = Math.max(0, Math.round((currentCounterExpiry - Date.now())/1000));
-  const el = document.getElementById('counterExpiryText');
-  if(secsLeft<=0){
-    el.textContent = 'Expired — tap "New code" for the next order.';
-  } else {
-    el.textContent = 'Expires in '+secsLeft+'s';
-  }
-  await renderCounterLog();
-}
-let lastLogJson = '';
-async function renderCounterLog(){
-  const log = await storeGet('counter:log', true) || [];
+let lastAdminLogJson = '';
+async function renderAdminLog(){
+  const log = await storeGet('admin:log', true) || [];
   const json = JSON.stringify(log);
-  if(json===lastLogJson) return;
-  lastLogJson = json;
-  const el = document.getElementById('counterLog');
+  if(json===lastAdminLogJson) return;
+  lastAdminLogJson = json;
+  const el = document.getElementById('adminLog');
   if(log.length===0){ el.innerHTML = ''; return; }
-  el.innerHTML = '<div class="ip-label" style="color:var(--teal-tint);">Recent check-ins</div>' +
-    log.map(l=>'<div class="cl-row"><span>'+l.redeemedBy+'</span><span>'+fmtTime(l.redeemedAt)+'</span></div>').join('');
+  el.innerHTML = '<div class="ip-label" style="color:var(--teal-tint);">Recent confirmations</div>' +
+    log.map(l=>'<div class="cl-row"><span>'+l.name+' ('+l.phone+')</span><span>+'+l.pts+'pt/+'+l.stamps+'st · '+fmtTime(l.at)+'</span></div>').join('');
 }
 
 /* ---------------- order / menu ---------------- */
@@ -1909,6 +1955,14 @@ async function confirmPayment(){
     return {name:item.name + (meta? ' ('+meta+')' : ''), qty:line.qty, price:cartLineUnit(line), drink:item.drink};
   });
   const orderId = 'LL' + Math.floor(1000+Math.random()*9000);
+  const drinkQty = items.filter(i=>i.drink).reduce((a,b)=>a+b.qty,0);
+
+  // spend redemption — points already validated against drink subtotal in computeTotals()
+  const redeemedPts = pointsToRedeem;
+  // Points earning is decided now (it only depends on whether points were redeemed on this
+  // order), but NOT credited yet — that only happens once the counter QR confirms pickup.
+  const pendingEarnedPts = redeemedPts > 0 ? 0 : POINTS_PER_TRANSACTION;
+
   const order = {
     id: orderId,
     type: orderType,
@@ -1917,14 +1971,14 @@ async function confirmPayment(){
     takeoutBoxCount: pendingOrder.boxCount || 0,
     takeoutBoxFee: pendingOrder.boxFee || 0,
     createdAt: Date.now(),
-    status: 'completed',
+    status: 'pending', // awaiting counter QR confirmation — points/stamps aren't credited yet
     paymentMethod,
+    drinkQty,
+    pendingEarnedPts,
   };
   customer.orders.unshift(order);
   customer.visits += 1;
 
-  // spend redemption — points already validated against drink subtotal in computeTotals()
-  const redeemedPts = pointsToRedeem;
   if(redeemedPts > 0){
     customer.points -= redeemedPts;
     pushHistory('Order '+orderId+' — redeemed '+redeemedPts+' pts toward drinks', -redeemedPts);
@@ -1934,37 +1988,9 @@ async function confirmPayment(){
     pendingOrder.reward.redeemedAt = Date.now();
   }
 
-  // Points and stamps are two separate mechanics.
-  // Points: flat 5 pts per completed transaction — skipped if points were redeemed on this same order.
-  const earnedPts = redeemedPts > 0 ? 0 : POINTS_PER_TRANSACTION;
-  customer.points += earnedPts;
-
-  // Stamps: 1 stamp per drink ordered (drinks only), capped at what's left until a free drink is unlocked.
-  const drinkQty = items.filter(i=>i.drink).reduce((a,b)=>a+b.qty,0);
-  const stampCapacity = STAMPS_REQUIRED - customer.drinkStamps;
-  const earnedStamps = Math.max(0, Math.min(drinkQty, stampCapacity));
-  customer.drinkStamps += earnedStamps;
-
   const methodLabel = paymentMethod==='cash' ? 'Cash' : 'GCash';
   pushHistory('Order '+orderId+' paid via '+methodLabel, -order.total);
-  if(earnedPts > 0){
-    pushHistory('Earned '+earnedPts+' pts for order '+orderId, earnedPts);
-  }
-  if(earnedStamps > 0){
-    pushHistory('Earned '+earnedStamps+' stamp'+(earnedStamps===1?'':'s')+' for order '+orderId, 0);
-  }
-
-  // stamp card just filled — unlock the free-drink reward (only once per fill)
-  if(customer.drinkStamps===STAMPS_REQUIRED){
-    const hasPendingStampReward = customer.rewards.some(r=>r.stampReward && !r.redeemed);
-    if(!hasPendingStampReward){
-      const code = genCode('LALUNA-FREE');
-      const rw = {id:'rw'+Date.now(), title:'Free drink reward', code, value: 0, redeemed:false, earnedAt: Date.now(), stampReward:true};
-      customer.rewards.unshift(rw);
-      pushHistory('Unlocked: free drink reward — choose any eligible drink', 0);
-      toast('🔔 Push notification: <b>Free drink unlocked!</b> Pick it from your Loyalty card.', 6000);
-    }
-  }
+  pushHistory('Order '+orderId+' — pts & stamps pending counter confirmation', 0);
 
   cart = [];
   uiState = {};
@@ -1973,10 +1999,7 @@ async function confirmPayment(){
   await saveCustomer();
   renderAll();
   showView('card');
-  const stampBit = earnedStamps>0 ? ' +'+earnedStamps+' stamp'+(earnedStamps===1?'':'s') : '';
-  toast(earnedPts > 0
-    ? 'Order completed! +'+earnedPts+' pts'+stampBit+' added — thank you for visiting La Luna.'
-    : 'Order completed!'+stampBit+' added (no pts this time since points were redeemed) — thank you for visiting La Luna.');
+  toast('Payment confirmed! Show your order QR to staff so they can add your points'+(drinkQty>0?' & stamp'+(drinkQty===1?'':'s'):'')+'.', 6000);
 }
 
 /* ---------------- rewards tab ---------------- */
