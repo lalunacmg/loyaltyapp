@@ -362,7 +362,7 @@
   .order-confirm-title{font-size:14px;font-weight:600;color:var(--ink);}
   .order-confirm-sub{font-size:12.5px;color:var(--ink-soft);margin-top:4px;line-height:1.5;}
   .order-confirm-qr{display:flex;justify-content:center;padding:14px;background:var(--white);border:1px solid var(--line);border-radius:var(--radius-s);margin-top:12px;}
-  .order-confirm-qr svg{display:block;width:160px;height:160px;}
+  .order-confirm-qr svg{display:block;width:210px;height:210px;}
   .qr-fallback{width:100%;text-align:center;padding:4px;}
   .qr-fallback-label{font-size:11.5px;color:var(--ink-soft);margin-bottom:8px;}
   .qr-fallback-code{font-family:monospace;font-size:14px;font-weight:600;color:var(--ink);word-break:break-all;background:var(--cream-2);border-radius:8px;padding:10px;}
@@ -1248,7 +1248,7 @@ const STAMPS_REQUIRED = 9; // buy 9, the 10th (last slot) is the free one
 function buildQrSvg(payload, cellSize, margin){
   if(typeof qrcode !== 'function') throw new Error('qrcode library not loaded');
   let lastErr = null;
-  for(let type=1; type<=10; type++){
+  for(let type=1; type<=30; type++){
     try{
       const qr = qrcode(type, 'M');
       qr.addData(payload);
@@ -1259,6 +1259,30 @@ function buildQrSvg(payload, cellSize, margin){
     }
   }
   throw lastErr || new Error('QR generation failed for all type numbers');
+}
+// Builds the full human-readable receipt text encoded in the transaction QR — this is
+// what staff (or any generic QR scanner) actually sees: who it is, what was bought, and
+// exactly what was earned, not just a bare code.
+function buildReceiptText(order, cust){
+  const lines = [];
+  lines.push('La Luna Grill & Cafe — Order Receipt');
+  lines.push('Customer: '+cust.name+' ('+cust.phone+')');
+  lines.push('Order: '+order.id+'  ·  '+fmtTime(order.createdAt));
+  lines.push('Type: '+(order.type==='dine-in'?'Dine-in':'Takeout')+'  ·  Paid via '+(order.paymentMethod==='cash'?'Cash':'GCash'));
+  lines.push('------------------------');
+  (order.items||[]).forEach(it=>{
+    lines.push(it.qty+'x '+it.name+'  ₱'+(it.price*it.qty));
+  });
+  if(order.takeoutBoxCount>0){
+    lines.push('Takeout box ('+order.takeoutBoxCount+'pc'+(order.takeoutBoxCount===1?'':'s')+')  ₱'+order.takeoutBoxFee);
+  }
+  lines.push('------------------------');
+  lines.push('Total: ₱'+order.total);
+  lines.push('------------------------');
+  lines.push('Points earned: +'+(order.earnedPts||0)+' pts');
+  lines.push('Stamps earned: +'+(order.earnedStamps||0));
+  lines.push('Current balance: '+cust.points+' pts  ·  '+Math.min(cust.drinkStamps, STAMPS_REQUIRED)+'/'+STAMPS_REQUIRED+' stamps');
+  return lines.join('\n');
 }
 function renderCard(){
   const stamps = Math.min(customer.drinkStamps, STAMPS_REQUIRED); // 0-9; frozen at 9 until the free drink is redeemed
@@ -1315,11 +1339,10 @@ function renderCard(){
     if(lastOrder.earnedStamps>0) bits.push('+'+lastOrder.earnedStamps+' stamp'+(lastOrder.earnedStamps===1?'':'s'));
     document.getElementById('lastOrderSub').textContent =
       'Order '+lastOrder.id+(bits.length ? ' — '+bits.join(' + ')+' added' : '')+'. Show this to staff to confirm your visit.';
-    const payload = 'La Luna Grill & Cafe\nCustomer: '+customer.name+' ('+customer.phone+')\n'+
-      'Order: '+lastOrder.id+'\nPoints balance: '+customer.points+' pts\nStamps: '+Math.min(customer.drinkStamps, STAMPS_REQUIRED)+'/'+STAMPS_REQUIRED;
+    const payload = buildReceiptText(lastOrder, customer);
     const qrBox = document.getElementById('lastOrderQR');
     try{
-      qrBox.innerHTML = buildQrSvg(payload, 4, 8);
+      qrBox.innerHTML = buildQrSvg(payload, 3, 8);
     } catch(e){
       // QR library failed to load (e.g. offline, CDN blocked) — fall back to plain text
       // staff can read directly off the screen.
@@ -1327,7 +1350,7 @@ function renderCard(){
       qrBox.innerHTML =
         '<div class="qr-fallback">'+
           '<div class="qr-fallback-label">QR unavailable — read this to staff instead:</div>'+
-          '<div class="qr-fallback-code">'+customer.name+' ('+customer.phone+') · Order '+lastOrder.id+' · '+customer.points+' pts · '+Math.min(customer.drinkStamps, STAMPS_REQUIRED)+'/'+STAMPS_REQUIRED+' stamps</div>'+
+          '<div class="qr-fallback-code" style="white-space:pre-wrap;text-align:left;">'+payload+'</div>'+
         '</div>';
     }
   } else {
